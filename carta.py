@@ -9,7 +9,7 @@ class Carta:
         self.valores = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'] # T is 10
 
     def obter_posicao_carta(self, carta):
-        valor = carta[0]  # Extrai o valor da carta (A, 2, 3, ..., K)
+        valor = carta[0] 
         
         coluna = self.valores.index(valor) % 5
         linha = self.valores.index(valor) // 5
