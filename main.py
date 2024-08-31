@@ -1,8 +1,19 @@
 import pygame
 import sys
-from button import Botao
+from button import *
 from carta import *
+from slotMachine import *
 
+pygame.init()
+
+LARGURA_TELA = 800
+ALTURA_TELA = 600
+TAMANHO_TELA = (LARGURA_TELA, ALTURA_TELA)
+
+pygame.display.set_caption("Casino")
+fonte = pygame.font.Font(None, 36)
+
+################## Colors ##################
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -21,14 +32,9 @@ DARK_RED = (139, 0, 0)
 DARK_BLUE = (0, 0, 139)
 DARK_RED = (139, 0, 0)
 NEON_GREEN = (57, 255, 20)
+#############################################
 
-pygame.init()
-
-LARGURA_TELA = 800
-ALTURA_TELA = 600
-TAMANHO_TELA = (LARGURA_TELA, ALTURA_TELA)
-COR_FUNDO = (0, 100, 0) 
-
+################## Images ##################
 tela = pygame.display.set_mode(TAMANHO_TELA)
 imagem_fundo = pygame.image.load('casino.jpeg')
 imagem_fundo = pygame.transform.scale(imagem_fundo, TAMANHO_TELA)
@@ -37,8 +43,27 @@ mesa_fundo = pygame.transform.scale(mesa_fundo, TAMANHO_TELA)
 hand = pygame.image.load('meh.png')
 thinger = pygame.image.load('dedo.png')
 money = pygame.image.load('money.png')
-pygame.display.set_caption("Jogo de Cassino")
-fonte = pygame.font.Font(None, 36)
+#############################################
+
+################## Buttons ##################
+
+# Menu
+playB = Botao(LARGURA_TELA // 2 - 50, 150, 100, 50, "Play", WHITE, DARK_GREEN, None, 10, GREEN)
+slotsB = Botao(LARGURA_TELA // 2 - 50, 250, 100, 50, "Slots", WHITE, PINK, None, 10, PURPLE)
+exitB = Botao(LARGURA_TELA // 2 - 50, 350, 100, 50, "Exit", WHITE, DARK_RED, None, 10, RED)
+
+# BlackjacK
+giveB = Botao(100, 200, 200, 50, "Give", DARK_BLUE, WHITE, None, 20, BLUE)
+stopB = Botao(100, 300, 200, 50, "Stop", PURPLE, WHITE, None, 20,PINK)
+playagainB = Botao(100, 250, 150, 70, "Play again", BLACK, NEON_GREEN, None, 5, GRAY)
+
+# Slots
+slotMachineB = Botao(675, 295, 90, 90, " ", PURPLE, WHITE, None, 100,PINK)
+
+backB = Botao(2, 2, 30, 30, "<", BLACK, WHITE, None, 20,RED)
+betB = Botao(LARGURA_TELA // 2 - 100, 400, 200, 50, "Bet", RED, WHITE, None, 20,ORANGE)
+
+#############################################
 
 coinsImage = []
 coinsButtons = []
@@ -49,15 +74,6 @@ for i in coinsValues:
     coinsImage.append(pygame.transform.scale(img, (65,65)))
     coinsButtons.append(Botao(ix, 250, 65, 65, " ", BLACK, WHITE, None, 100,GRAY))
     ix += 65
-
-
-playB = Botao(LARGURA_TELA // 2 - 50, 150, 100, 50, "Play", WHITE, DARK_GREEN, None, 10, GREEN)
-exitB = Botao(LARGURA_TELA // 2 - 50, 250, 100, 50, "Exit", WHITE, DARK_RED, None, 10, RED)
-giveB = Botao(100, 200, 200, 50, "Give", DARK_BLUE, WHITE, None, 20, BLUE)
-stopB = Botao(100, 300, 200, 50, "Stop", PURPLE, WHITE, None, 20,PINK)
-backB = Botao(2, 2, 30, 30, "<", BLACK, WHITE, None, 20,RED)
-betB = Botao(LARGURA_TELA // 2 - 100, 400, 200, 50, "Bet", RED, WHITE, None, 20,ORANGE)
-playagainB = Botao(100, 250, 150, 70, "Play again", BLACK, NEON_GREEN, None, 5, GRAY)
 
 def escrever_texto(texto, fonte, cor, superficie, x, y):
     texto_surface = fonte.render(texto, True, cor)
@@ -107,6 +123,7 @@ def main():
     betValue = 0
     betCoinsV = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     i = 0
+    slotMachine = slotM()
 
     while jogo_em_execucao:
         i += 1
@@ -119,6 +136,9 @@ def main():
                 if state == 'menu':
                     playB.ativar(pos)
                     exitB.ativar(pos)
+                    slotsB.ativar(pos)
+                elif state == 'slots':
+                    slotMachineB.ativar(pos)
                 elif state == 'playBlackjack':
                     giveB.ativar(pos)
                     stopB.ativar(pos)
@@ -156,9 +176,12 @@ def main():
                         card = pickCard(cards)
                         cards.remove(card)
                         mycards.append(card)
+                    elif slotsB.foi_clicado(evento.pos):
+                        state = 'slots'
 
                     elif exitB.foi_clicado(evento.pos):
                         jogo_em_execucao = False
+                        
                 elif state == 'playBlackjack':
                     if backB.foi_clicado(evento.pos):
                         state = 'menu'
@@ -232,14 +255,26 @@ def main():
                         if coinsButtons[i].foi_clicado(evento.pos) and betValue + int(coinsValues[i]) <= cash:
                             betCoinsV[i] += 1
                             betValue += int(coinsValues[i])
-                
+                        
+                elif state == 'slots':
+                    if slotMachineB.foi_clicado(evento.pos):
+                        print('clicked !')
+                        slotMachine.push()
+        ###################### DRAWS ######################
+
         tela.blit(mesa_fundo, (0,0))
         
         if state == 'menu':
             tela.blit(imagem_fundo, (0, 0))
             playB.desenhar(tela)
             exitB.desenhar(tela)
+            slotsB.desenhar(tela)
             draw_money(tela, cash, money)
+        
+        elif state == 'slots':
+            tela.blit(imagem_fundo, (0, 0))
+            slotMachine.desenhar(tela)
+            #slotMachineB.desenhar(tela)
 
         elif state == 'betBlackjack':
             draw_money(tela, cash, money)
@@ -288,6 +323,7 @@ def main():
                 if len(cardsValue(mycards)) == 0:
                     state = 'endBlackjack'
                     winner = 'Dealer'
+
         elif state == 'DanimBlackjack':
             baralho.desenharMao(tela, mycards, Xinitial, 400)
             baralho.desenharMao(tela, dlcards[:-1], Xinitial, 50)
@@ -318,7 +354,7 @@ def main():
                             cash += betValue     
                         state = 'endBlackjack'
             
-
+        #############################################
 
         pygame.display.flip()
 
